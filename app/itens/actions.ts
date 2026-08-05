@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ItemStatus, Prisma } from "@prisma/client";
+import { mkdir, unlink, writeFile } from "fs/promises";
+import path from "path";
 import { prisma } from "../../lib/prisma";
 
 const itemStatuses = new Set(Object.values(ItemStatus));
@@ -48,35 +50,39 @@ function redirectWithMessage(message: string): never {
   redirect(`/itens?message=${encodeURIComponent(message)}`);
 }
 
-async function replacePrimaryPhoto(itemId: string, photoUrl: string | null) {
+function safeFileName(fileName: string) {
+  return fileName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase();
+}
+
+function localUploadPath(photoUrl: string) {
+  if (!photoUrl.startsWith("/uploads/items/")) {
+    return null;
+  }
+
+  return path.join(process.cwd(), "public", photoUrl);
+}
+
+async function removeLocalFile(photoUrl: string | null) {
   if (!photoUrl) {
-    await prisma.itemPhoto.deleteMany({
-      where: { itemId, isPrimary: true }
-    });
     return;
   }
 
-  const primaryPhoto = await prisma.itemPhoto.findFirst({
-    where: { itemId, isPrimary: true },
-    orderBy: { createdAt: "desc" }
-  });
+  const filePath = localUploadPath(photoUrl);
 
-  if (primaryPhoto) {
-    await prisma.itemPhoto.update({
-      where: { id: primaryPhoto.id },
-      data: { photoUrl }
-    });
+  if (!filePath) {
     return;
   }
 
-  await prisma.itemPhoto.create({
-    data: {
-      itemId,
-      photoUrl,
-      isPrimary: true,
-      sortOrder: 0
-    }
-  });
+  try {
+    await unlink(filePath);
+  } catch {
+    // File removal is best-effort for this local POC.
+  }
 }
 
 export async function createItem(formData: FormData) {
@@ -84,7 +90,6 @@ export async function createItem(formData: FormData) {
   const type = requiredText(formData.get("type"));
   const rentalPriceCents = parseMoneyToCents(formData.get("rentalPrice"));
   const depositAmountCents = parseMoneyToCents(formData.get("depositAmount"));
-  const photoUrl = optionalText(formData.get("photoUrl"));
 
   if (!name || !type || rentalPriceCents === null) {
     redirectWithMessage("Informe nome, tipo e preco de aluguel.");
@@ -101,16 +106,7 @@ export async function createItem(formData: FormData) {
           rentalPriceCents,
           depositAmountCents: depositAmountCents ?? 0
         }
-      },
-      photos: photoUrl
-        ? {
-            create: {
-              photoUrl,
-              isPrimary: true,
-              sortOrder: 0
-            }
-          }
-        : undefined
+      }
     }
   });
 
@@ -137,8 +133,6 @@ export async function updateItem(formData: FormData) {
       status: parseStatus(formData.get("status"))
     }
   });
-
-  await replacePrimaryPhoto(id, optionalText(formData.get("photoUrl")));
 
   revalidatePath("/itens");
   revalidatePath("/");
@@ -187,9 +181,16 @@ export async function deleteItem(formData: FormData) {
   }
 
   try {
+    const photos = await prisma.itemPhoto.findMany({
+      where: { itemId: id },
+      select: { photoUrl: true }
+    });
+
     await prisma.item.delete({
       where: { id }
     });
+
+    await Promise.all(photos.map((photo) => removeLocalFile(photo.photoUrl)));
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -204,4 +205,125 @@ export async function deleteItem(formData: FormData) {
   revalidatePath("/itens");
   revalidatePath("/");
   redirectWithMessage("Joia removida.");
+}
+
+export async function uploadItemPhoto(formData: FormData) {
+  const itemId = requiredText(formData.get("itemId"));
+  const file = formData.get("photo");
+
+  if (!itemId || !(file instanceof File) || file.size === 0) {
+    redirectWithMessage("Selecione uma foto para anexar.");
+  }
+
+  if (!file.type.startsWith("image/")) {
+    redirectWithMessage("O arquivo selecionado precisa ser uma imagem.");
+  }
+
+  const item = await prisma.item.findUnique({
+    where: { id: itemId },
+    select: { id: true }
+  });
+
+  if (!item) {
+    redirectWithMessage("Joia nao encontrada.");
+  }
+
+  const uploadDir = path.join(process.cwd(), "public", "uploads", "items");
+  await mkdir(uploadDir, { recursive: true });
+
+  const extension = path.extname(file.name) || ".jpg";
+  const baseName = path.basename(file.name, extension);
+  const fileName = `${itemId}-${Date.now()}-${safeFileName(baseName)}${extension.toLowerCase()}`;
+  const filePath = path.join(uploadDir, fileName);
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  await writeFile(filePath, buffer);
+
+  const existingPhotos = await prisma.itemPhoto.count({
+    where: { itemId }
+  });
+
+  await prisma.itemPhoto.create({
+    data: {
+      itemId,
+      photoUrl: `/uploads/items/${fileName}`,
+      isPrimary: existingPhotos === 0,
+      sortOrder: existingPhotos
+    }
+  });
+
+  revalidatePath("/itens");
+  revalidatePath("/");
+  redirectWithMessage("Foto anexada.");
+}
+
+export async function setPrimaryItemPhoto(formData: FormData) {
+  const photoId = requiredText(formData.get("photoId"));
+
+  if (!photoId) {
+    redirectWithMessage("Foto nao encontrada.");
+  }
+
+  const photo = await prisma.itemPhoto.findUnique({
+    where: { id: photoId },
+    select: { itemId: true }
+  });
+
+  if (!photo) {
+    redirectWithMessage("Foto nao encontrada.");
+  }
+
+  await prisma.$transaction([
+    prisma.itemPhoto.updateMany({
+      where: { itemId: photo.itemId },
+      data: { isPrimary: false }
+    }),
+    prisma.itemPhoto.update({
+      where: { id: photoId },
+      data: { isPrimary: true }
+    })
+  ]);
+
+  revalidatePath("/itens");
+  revalidatePath("/");
+  redirectWithMessage("Foto principal atualizada.");
+}
+
+export async function deleteItemPhoto(formData: FormData) {
+  const photoId = requiredText(formData.get("photoId"));
+
+  if (!photoId) {
+    redirectWithMessage("Foto nao encontrada.");
+  }
+
+  const photo = await prisma.itemPhoto.findUnique({
+    where: { id: photoId }
+  });
+
+  if (!photo) {
+    redirectWithMessage("Foto nao encontrada.");
+  }
+
+  await prisma.itemPhoto.delete({
+    where: { id: photoId }
+  });
+  await removeLocalFile(photo.photoUrl);
+
+  if (photo.isPrimary) {
+    const nextPhoto = await prisma.itemPhoto.findFirst({
+      where: { itemId: photo.itemId },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
+    });
+
+    if (nextPhoto) {
+      await prisma.itemPhoto.update({
+        where: { id: nextPhoto.id },
+        data: { isPrimary: true }
+      });
+    }
+  }
+
+  revalidatePath("/itens");
+  revalidatePath("/");
+  redirectWithMessage("Foto removida.");
 }

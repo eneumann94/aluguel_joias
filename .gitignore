@@ -8,3 +8,4 @@ dist
 *.db-shm
 *.db-wal
 dev-server*.log
+public/uploads/

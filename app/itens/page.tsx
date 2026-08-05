@@ -4,7 +4,10 @@ import { prisma } from "../../lib/prisma";
 import {
   createItem,
   createItemPrice,
+  deleteItemPhoto,
   deleteItem,
+  setPrimaryItemPhoto,
+  uploadItemPhoto,
   updateItem
 } from "./actions";
 
@@ -57,9 +60,7 @@ export default async function ItemsPage({ searchParams }: ItemsPageProps) {
       orderBy: { createdAt: "desc" },
       include: {
         photos: {
-          where: { isPrimary: true },
-          orderBy: { createdAt: "desc" },
-          take: 1
+          orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }, { createdAt: "asc" }]
         },
         prices: {
           orderBy: { createdAt: "desc" },
@@ -139,11 +140,6 @@ export default async function ItemsPage({ searchParams }: ItemsPageProps) {
           </label>
 
           <label>
-            Foto principal
-            <input name="photoUrl" placeholder="https://..." />
-          </label>
-
-          <label>
             Status manual temporario
             <select name="status" defaultValue={ItemStatus.available}>
               {Object.values(ItemStatus).map((status) => (
@@ -184,7 +180,8 @@ export default async function ItemsPage({ searchParams }: ItemsPageProps) {
             <div className="itemRows">
               {items.map((item) => {
                 const currentPrice = item.prices[0];
-                const primaryPhoto = item.photos[0];
+                const primaryPhoto =
+                  item.photos.find((photo) => photo.isPrimary) ?? item.photos[0];
 
                 return (
                   <details className="itemRow" key={item.id}>
@@ -247,14 +244,6 @@ export default async function ItemsPage({ searchParams }: ItemsPageProps) {
                             ))}
                           </select>
                         </label>
-                        <label>
-                          Foto principal
-                          <input
-                            defaultValue={primaryPhoto?.photoUrl ?? ""}
-                            name="photoUrl"
-                            placeholder="https://..."
-                          />
-                        </label>
                         <label className="wideField">
                           Descricao
                           <textarea
@@ -267,6 +256,66 @@ export default async function ItemsPage({ searchParams }: ItemsPageProps) {
                           <button type="submit">Atualizar dados</button>
                         </div>
                       </form>
+
+                      <section className="photosPanel" aria-label={`Fotos de ${item.name}`}>
+                        <div className="sectionTitle compactTitle">
+                          <div>
+                            <h2>Fotos</h2>
+                            <span>{item.photos.length} anexadas</span>
+                          </div>
+                        </div>
+
+                        <form
+                          action={uploadItemPhoto}
+                          className="photoUploadForm"
+                        >
+                          <input name="itemId" type="hidden" value={item.id} />
+                          <label>
+                            Anexar foto
+                            <input accept="image/*" name="photo" required type="file" />
+                          </label>
+                          <button type="submit">Enviar foto</button>
+                        </form>
+
+                        {item.photos.length === 0 ? (
+                          <div className="emptyState compactEmpty">
+                            Nenhuma foto anexada para esta joia.
+                          </div>
+                        ) : (
+                          <div className="photoGrid">
+                            {item.photos.map((photo) => (
+                              <article className="photoTile" key={photo.id}>
+                                <img alt={item.name} src={photo.photoUrl} />
+                                <div>
+                                  <strong>
+                                    {photo.isPrimary ? "Principal" : "Foto"}
+                                  </strong>
+                                  <div className="photoActions">
+                                    {!photo.isPrimary ? (
+                                      <form action={setPrimaryItemPhoto}>
+                                        <input
+                                          name="photoId"
+                                          type="hidden"
+                                          value={photo.id}
+                                        />
+                                        <button type="submit">Marcar principal</button>
+                                      </form>
+                                    ) : null}
+                                    <form action={deleteItemPhoto}>
+                                      <input
+                                        name="photoId"
+                                        type="hidden"
+                                        value={photo.id}
+                                      />
+                                      <button type="submit">Remover</button>
+                                    </form>
+                                  </div>
+                                </div>
+                              </article>
+                            ))}
+                          </div>
+                        )}
+                      </section>
 
                       <form action={createItemPrice} className="priceForm">
                         <input name="itemId" type="hidden" value={item.id} />

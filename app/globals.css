@@ -356,7 +356,9 @@ textarea:focus {
 
 .formPanel button,
 .searchForm button,
-.rowActions button {
+.rowActions button,
+.photoUploadForm button,
+.photoActions button {
   min-height: 42px;
   padding: 0 14px;
   color: #ffffff;
@@ -525,6 +527,96 @@ dd {
   grid-column: 1 / -1;
 }
 
+.photosPanel {
+  display: grid;
+  gap: 14px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.compactTitle {
+  padding: 0;
+  border-bottom: 0;
+}
+
+.compactTitle > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.compactTitle h2 {
+  font-size: 21px;
+}
+
+.photoUploadForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 12px;
+  align-items: end;
+}
+
+.compactEmpty {
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.photoTile {
+  overflow: hidden;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.photoTile img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: #f4ead9;
+}
+
+.photoTile > div {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+}
+
+.photoTile strong {
+  color: var(--green);
+  font-size: 13px;
+}
+
+.photoActions {
+  display: grid;
+  gap: 8px;
+}
+
+.photoActions form {
+  display: grid;
+}
+
+.photoActions button {
+  min-height: 34px;
+  color: var(--green);
+  background: #eef4ef;
+  border-color: #d8e5db;
+  font-size: 12px;
+}
+
+.photoActions form:last-child button {
+  color: #7c2430;
+  background: #fff5f5;
+  border-color: #efc9cf;
+}
+
 .rowActions {
   display: flex;
   align-items: end;
@@ -595,6 +687,10 @@ dd {
     grid-template-columns: 1fr;
   }
 
+  .photoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   dl {
     grid-template-columns: 1fr 1fr;
   }
@@ -626,6 +722,7 @@ dd {
   .itemRow summary,
   .editForm,
   .priceForm,
+  .photoUploadForm,
   dl {
     grid-template-columns: 1fr;
   }
@@ -641,7 +738,8 @@ dd {
   }
 
   .deleteForm button,
-  .rowActions button {
+  .rowActions button,
+  .photoUploadForm button {
     width: 100%;
   }
 }
