@@ -298,7 +298,8 @@ h2 {
   font-weight: 750;
 }
 
-.customerLayout {
+.customerLayout,
+.itemLayout {
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);
   gap: 24px;
@@ -327,7 +328,9 @@ label {
   font-weight: 760;
 }
 
-input {
+input,
+select,
+textarea {
   min-height: 42px;
   width: 100%;
   padding: 0 11px;
@@ -338,7 +341,15 @@ input {
   outline: none;
 }
 
-input:focus {
+textarea {
+  min-height: 92px;
+  padding-top: 10px;
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
   border-color: var(--gold);
   box-shadow: 0 0 0 3px rgba(184, 137, 70, 0.16);
 }
@@ -393,19 +404,23 @@ input:focus {
   line-height: 1.5;
 }
 
-.customerRows {
+.customerRows,
+.itemRows {
   display: grid;
 }
 
-.customerRow {
+.customerRow,
+.itemRow {
   border-bottom: 1px solid var(--line);
 }
 
-.customerRow:last-child {
+.customerRow:last-child,
+.itemRow:last-child {
   border-bottom: 0;
 }
 
-.customerRow summary {
+.customerRow summary,
+.itemRow summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 96px;
   gap: 14px;
@@ -416,30 +431,60 @@ input:focus {
   list-style: none;
 }
 
-.customerRow summary::-webkit-details-marker {
+.itemRow summary {
+  grid-template-columns: 72px minmax(0, 1fr) 120px;
+}
+
+.customerRow summary::-webkit-details-marker,
+.itemRow summary::-webkit-details-marker {
   display: none;
 }
 
 .customerRow summary strong,
-.customerRow summary small {
+.customerRow summary small,
+.itemRow summary strong,
+.itemRow summary small {
   display: block;
 }
 
-.customerRow summary small {
+.customerRow summary small,
+.itemRow summary small {
   margin-top: 5px;
   color: var(--muted);
 }
 
-.customerRow summary > span:last-child {
+.customerRow summary > span:last-child,
+.priceSummary {
   color: var(--muted);
   font-size: 14px;
   text-align: right;
 }
 
-.customerDetails {
+.customerDetails,
+.itemDetails {
   display: grid;
   gap: 18px;
   padding: 0 20px 20px;
+}
+
+.itemThumb {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  color: var(--muted);
+  background: #f4ead9;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.itemThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 dl {
@@ -464,10 +509,20 @@ dd {
   overflow-wrap: anywhere;
 }
 
-.editForm {
+.editForm,
+.priceForm {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.itemEditForm {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.wideField {
+  grid-column: 1 / -1;
 }
 
 .rowActions {
@@ -535,6 +590,7 @@ dd {
   }
 
   .customerLayout,
+  .itemLayout,
   .listHeader {
     grid-template-columns: 1fr;
   }
@@ -567,12 +623,15 @@ dd {
 
   .searchForm,
   .customerRow summary,
+  .itemRow summary,
   .editForm,
+  .priceForm,
   dl {
     grid-template-columns: 1fr;
   }
 
-  .customerRow summary > span:last-child {
+  .customerRow summary > span:last-child,
+  .priceSummary {
     text-align: left;
   }
 

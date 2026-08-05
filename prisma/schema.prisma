@@ -58,8 +58,6 @@ model ItemPrice {
   itemId             String
   rentalPriceCents   Int
   depositAmountCents Int
-  validFrom          DateTime  @default(now())
-  validUntil         DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
