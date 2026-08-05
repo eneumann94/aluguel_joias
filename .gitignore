@@ -7,3 +7,4 @@ dist
 *.db-journal
 *.db-shm
 *.db-wal
+dev-server*.log
