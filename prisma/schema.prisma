@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id        String    @id @default(cuid())
+  cpf       String?   @unique
+  name      String
+  birthDate DateTime?
+  email     String?
+  whatsapp  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  rentals Rental[]
+
+  @@map("customers")
+}
+
+model Item {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  type        String
+  status      ItemStatus @default(available)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  photos      ItemPhoto[]
+  prices      ItemPrice[]
+  rentalItems RentalItem[]
+
+  @@map("items")
+}
+
+model ItemPhoto {
+  id        String   @id @default(cuid())
+  itemId    String
+  photoUrl  String
+  sortOrder Int      @default(0)
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+  @@map("item_photos")
+}
+
+model ItemPrice {
+  id                 String    @id @default(cuid())
+  itemId             String
+  rentalPriceCents   Int
+  depositAmountCents Int
+  validFrom          DateTime  @default(now())
+  validUntil         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+  @@map("item_prices")
+}
+
+model Rental {
+  id                 String       @id @default(cuid())
+  customerId         String
+  startDate          DateTime
+  expectedEndDate    DateTime
+  returnedAt         DateTime?
+  subtotalCents      Int          @default(0)
+  discountCents      Int          @default(0)
+  depositAmountCents Int          @default(0)
+  totalAmountCents   Int          @default(0)
+  status             RentalStatus @default(draft)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  customer    Customer     @relation(fields: [customerId], references: [id])
+  rentalItems RentalItem[]
+  payments    Payment[]
+
+  @@index([customerId])
+  @@index([startDate, expectedEndDate])
+  @@map("rentals")
+}
+
+model RentalItem {
+  id                 String   @id @default(cuid())
+  rentalId           String
+  itemId             String
+  rentalPriceCents   Int
+  depositAmountCents Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  rental      Rental       @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  item        Item         @relation(fields: [itemId], references: [id])
+  inspections Inspection[]
+
+  @@unique([rentalId, itemId])
+  @@index([itemId])
+  @@map("rental_items")
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  rentalId    String
+  type        PaymentType
+  method      PaymentMethod
+  amountCents Int
+  status      PaymentStatus @default(pending)
+  paidAt      DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  rental Rental @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+
+  @@index([rentalId])
+  @@map("payments")
+}
+
+model Inspection {
+  id           String         @id @default(cuid())
+  rentalItemId String
+  type         InspectionType
+  photoUrl     String?
+  notes        String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  rentalItem RentalItem @relation(fields: [rentalItemId], references: [id], onDelete: Cascade)
+
+  @@index([rentalItemId])
+  @@map("inspections")
+}
+
+enum ItemStatus {
+  available
+  reserved
+  rented
+  cleaning
+  maintenance
+  inactive
+}
+
+enum RentalStatus {
+  draft
+  requested
+  confirmed
+  paid
+  picked_up
+  returned
+  cancelled
+  late
+}
+
+enum PaymentType {
+  rental
+  deposit
+  refund
+  late_fee
+  damage_fee
+}
+
+enum PaymentMethod {
+  pix
+  credit_card
+  debit_card
+  cash
+  bank_transfer
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  refunded
+  cancelled
+  failed
+}
+
+enum InspectionType {
+  pickup
+  return
+}

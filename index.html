@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aurora Joias - Aluguel de joias</title>
+  <style>
+    :root {
+      --ink: #202020;
+      --muted: #68635d;
+      --paper: #fbf8f2;
+      --soft: #efe8dc;
+      --line: #ded2bf;
+      --gold: #b88946;
+      --green: #23443a;
+      --rose: #8c4f57;
+      --white: #ffffff;
+      --shadow: 0 18px 55px rgba(48, 35, 20, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .page {
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 18px clamp(20px, 5vw, 72px);
+      background: rgba(251, 248, 242, 0.86);
+      border-bottom: 1px solid rgba(222, 210, 191, 0.8);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 24px;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      color: var(--white);
+      background: var(--green);
+      border-radius: 50%;
+      font-family: Inter, sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .nav {
+      display: flex;
+      gap: 22px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .nav a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 520px);
+      align-items: stretch;
+      gap: clamp(32px, 5vw, 72px);
+      min-height: 76vh;
+      padding: clamp(40px, 7vw, 92px) clamp(20px, 5vw, 72px) 34px;
+    }
+
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 720px;
+    }
+
+    .eyebrow {
+      margin: 0 0 18px;
+      color: var(--rose);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(44px, 8vw, 88px);
+      line-height: 0.96;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 620px;
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.55;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 34px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 20px;
+      border: 1px solid var(--green);
+      border-radius: 999px;
+      color: var(--white);
+      background: var(--green);
+      text-decoration: none;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .button.secondary {
+      color: var(--green);
+      background: transparent;
+    }
+
+    .hero-visual {
+      position: relative;
+      display: grid;
+      align-content: end;
+      min-height: 520px;
+      padding: 28px;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.25), transparent 19%),
+        linear-gradient(145deg, rgba(35, 68, 58, 0.92), rgba(140, 79, 87, 0.9)),
+        url("https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?auto=format&fit=crop&w=1100&q=80");
+      background-size: cover;
+      background-position: center;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-visual::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(19, 18, 16, 0.72), rgba(19, 18, 16, 0.08) 65%);
+    }
+
+    .visual-caption {
+      position: relative;
+      max-width: 360px;
+    }
+
+    .visual-caption strong {
+      display: block;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 30px;
+      font-weight: 500;
+    }
+
+    .visual-caption span {
+      display: block;
+      margin-top: 8px;
+      color: rgba(255, 255, 255, 0.82);
+      line-height: 1.45;
+    }
+
+    .section {
+      padding: 54px clamp(20px, 5vw, 72px);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 500;
+    }
+
+    .section-head p {
+      max-width: 420px;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .catalog {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .jewel-card {
+      overflow: hidden;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 10px 28px rgba(48, 35, 20, 0.08);
+    }
+
+    .jewel-image {
+      min-height: 260px;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .jewel-body {
+      padding: 18px;
+    }
+
+    .jewel-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 9px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status {
+      padding: 5px 9px;
+      color: var(--green);
+      background: #e5eee9;
+      border-radius: 999px;
+      font-weight: 750;
+    }
+
+    .jewel-card h3 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .jewel-card p {
+      margin: 9px 0 16px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .price {
+      color: var(--green);
+      font-size: 20px;
+      font-weight: 850;
+    }
+
+    .tiny-button {
+      padding: 9px 12px;
+      border: 1px solid var(--gold);
+      border-radius: 999px;
+      color: var(--ink);
+      background: #fff9ec;
+      cursor: pointer;
+    }
+
+    .reserve {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+      gap: 28px;
+      align-items: center;
+      background: var(--green);
+      color: var(--white);
+    }
+
+    .reserve p {
+      max-width: 580px;
+      color: rgba(255, 255, 255, 0.78);
+      line-height: 1.55;
+    }
+
+    .reserve-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 22px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 12px;
+      color: var(--ink);
+      background: var(--white);
+      border: 0;
+      border-radius: 6px;
+      outline: none;
+    }
+
+    .result {
+      grid-column: 1 / -1;
+      min-height: 48px;
+      padding: 13px 14px;
+      color: #f8ead3;
+      background: rgba(0, 0, 0, 0.16);
+      border-radius: 6px;
+      line-height: 1.35;
+    }
+
+    .reserve-form .button {
+      grid-column: 1 / -1;
+      border-color: var(--gold);
+      color: var(--ink);
+      background: #f4d9a1;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .step {
+      padding: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .step span {
+      color: var(--gold);
+      font-weight: 850;
+    }
+
+    .step h3 {
+      margin: 10px 0 8px;
+      font-size: 18px;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 28px clamp(20px, 5vw, 72px);
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+    }
+
+    @media (max-width: 900px) {
+      .nav {
+        display: none;
+      }
+
+      .hero,
+      .reserve {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        min-height: auto;
+      }
+
+      .hero-visual {
+        min-height: 420px;
+      }
+
+      .catalog,
+      .steps {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .topbar {
+        padding: 14px 18px;
+      }
+
+      .hero,
+      .section {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .hero-actions,
+      .section-head,
+      footer {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .button {
+        width: 100%;
+      }
+
+      .hero-visual {
+        min-height: 340px;
+        padding: 22px;
+      }
+
+      .catalog,
+      .steps,
+      .reserve-form {
+        grid-template-columns: 1fr;
+      }
+
+      .jewel-image {
+        min-height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand" aria-label="Aurora Joias">
+        <span class="brand-mark">AJ</span>
+        Aurora Joias
+      </div>
+      <nav class="nav" aria-label="Navegacao principal">
+        <a href="#colecao">Colecao</a>
+        <a href="#reserva">Reserva</a>
+        <a href="#como-funciona">Como funciona</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Aluguel de joias para ocasioes especiais</p>
+        <h1>Joias marcantes, sem precisar comprar.</h1>
+        <p class="lead">
+          Escolha a peca, reserve a data e receba uma experiencia cuidada do primeiro contato a devolucao.
+          Um prototipo simples para imaginar a futura vitrine da loja.
+        </p>
+        <div class="hero-actions">
+          <a class="button" href="#colecao">Ver pecas</a>
+          <a class="button secondary" href="#reserva">Simular reserva</a>
+        </div>
+      </div>
+
+      <aside class="hero-visual" aria-label="Imagem de joias douradas">
+        <div class="visual-caption">
+          <strong>Curadoria para eventos, noivas e editoriais.</strong>
+          <span>Pecas compradas de fornecedores selecionados, catalogadas individualmente e cuidadas a cada aluguel.</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section" id="colecao">
+      <div class="section-head">
+        <h2>Primeira colecao</h2>
+        <p>Alguns cards ficticios para visualizar catalogo, preco, disponibilidade e chamada para reserva.</p>
+      </div>
+
+      <div class="catalog">
+        <article class="jewel-card">
+          <div class="jewel-image" style="background-image: url('https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=80');"></div>
+          <div class="jewel-body">
+            <div class="jewel-meta">
+              <span>Brinco longo</span>
+              <span class="status">Disponivel</span>
+            </div>
+            <h3>Luz de Champagne</h3>
+            <p>Cristais claros, banho dourado e presenca suficiente para noite.</p>
+            <div class="price-row">
+              <span class="price">R$ 180/dia</span>
+              <button class="tiny-button" data-jewel="Luz de Champagne">Reservar</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="jewel-card">
+          <div class="jewel-image" style="background-image: url('https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&w=900&q=80');"></div>
+          <div class="jewel-body">
+            <div class="jewel-meta">
+              <span>Colar</span>
+              <span class="status">Disponivel</span>
+            </div>
+            <h3>Aurora Perola</h3>
+            <p>Uma peca classica para vestidos limpos, decotes retos e cerimonias.</p>
+            <div class="price-row">
+              <span class="price">R$ 240/dia</span>
+              <button class="tiny-button" data-jewel="Aurora Perola">Reservar</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="jewel-card">
+          <div class="jewel-image" style="background-image: url('https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=900&q=80');"></div>
+          <div class="jewel-body">
+            <div class="jewel-meta">
+              <span>Conjunto</span>
+              <span class="status">Disponivel</span>
+            </div>
+            <h3>Jardim Rubi</h3>
+            <p>Pedras em tom vinho para looks intensos, festas e fotos de impacto.</p>
+            <div class="price-row">
+              <span class="price">R$ 320/dia</span>
+              <button class="tiny-button" data-jewel="Jardim Rubi">Reservar</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section reserve" id="reserva">
+      <div>
+        <p class="eyebrow">Prova de conceito</p>
+        <h2>Simule uma reserva</h2>
+        <p>
+          Este formulario ainda nao envia nada. Ele apenas mostra como o fluxo pode comecar:
+          peca, data do evento, periodo e contato da cliente.
+        </p>
+      </div>
+
+      <form class="reserve-form" id="reserveForm">
+        <div class="field full">
+          <label for="jewel">Joia</label>
+          <select id="jewel" required>
+            <option value="Luz de Champagne">Luz de Champagne</option>
+            <option value="Aurora Perola">Aurora Perola</option>
+            <option value="Jardim Rubi">Jardim Rubi</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="date">Data do evento</label>
+          <input id="date" type="date" required>
+        </div>
+        <div class="field">
+          <label for="days">Dias</label>
+          <select id="days">
+            <option value="1">1 dia</option>
+            <option value="2">2 dias</option>
+            <option value="3">3 dias</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label for="name">Nome</label>
+          <input id="name" type="text" placeholder="Seu nome">
+        </div>
+        <div class="result" id="result">Escolha uma joia e uma data para visualizar a solicitacao.</div>
+        <button class="button" type="submit">Gerar solicitacao</button>
+      </form>
+    </section>
+
+    <section class="section" id="como-funciona">
+      <div class="section-head">
+        <h2>Fluxo simples</h2>
+        <p>Uma operacao pequena pode comecar assim, com poucos passos e controle manual onde ainda fizer sentido.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <span>01</span>
+          <h3>Escolha</h3>
+          <p>A cliente escolhe uma peca e informa a data do evento.</p>
+        </div>
+        <div class="step">
+          <span>02</span>
+          <h3>Confirmacao</h3>
+          <p>A equipe confirma disponibilidade, valor, caução e retirada.</p>
+        </div>
+        <div class="step">
+          <span>03</span>
+          <h3>Retirada</h3>
+          <p>A peca sai com vistoria, fotos e registro do estado.</p>
+        </div>
+        <div class="step">
+          <span>04</span>
+          <h3>Devolucao</h3>
+          <p>A joia retorna, passa por conferencia e volta ao catalogo.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <span>Aurora Joias - prototipo inicial</span>
+      <span>Aluguel, curadoria e cuidado de pecas especiais.</span>
+    </footer>
+  </main>
+
+  <script>
+    const priceByJewel = {
+      "Luz de Champagne": 180,
+      "Aurora Perola": 240,
+      "Jardim Rubi": 320
+    };
+
+    const form = document.querySelector("#reserveForm");
+    const jewel = document.querySelector("#jewel");
+    const date = document.querySelector("#date");
+    const days = document.querySelector("#days");
+    const nameInput = document.querySelector("#name");
+    const result = document.querySelector("#result");
+    const reserveButtons = document.querySelectorAll("[data-jewel]");
+
+    function formatMoney(value) {
+      return value.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function updateResult() {
+      const selectedJewel = jewel.value;
+      const total = priceByJewel[selectedJewel] * Number(days.value);
+      const customer = nameInput.value.trim() || "Cliente";
+      const selectedDate = date.value ? new Date(date.value + "T12:00:00").toLocaleDateString("pt-BR") : "data a definir";
+
+      result.textContent = `${customer}, sua solicitacao para ${selectedJewel} em ${selectedDate} ficaria em ${formatMoney(total)} antes de caucao.`;
+    }
+
+    reserveButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        jewel.value = button.dataset.jewel;
+        updateResult();
+        document.querySelector("#reserva").scrollIntoView({ behavior: "smooth" });
+      });
+    });
+
+    [jewel, date, days, nameInput].forEach((field) => {
+      field.addEventListener("input", updateResult);
+      field.addEventListener("change", updateResult);
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      updateResult();
+      result.textContent += " Em um MVP real, isso viraria uma reserva pendente no painel.";
+    });
+
+    updateResult();
+  </script>
+</body>
+</html>
