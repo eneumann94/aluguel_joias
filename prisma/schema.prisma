@@ -142,15 +142,13 @@ model RentalFinancialLine {
 }
 
 model RentalCharge {
-  id           String             @id @default(cuid())
-  rentalId     String
-  amountCents  Int
-  method       RentalChargeMethod
-  installments Int                @default(1)
-  status       RentalChargeStatus @default(pending)
-  expiresAt    DateTime
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  id          String             @id @default(cuid())
+  rentalId    String
+  amountCents Int
+  status      RentalChargeStatus @default(pending)
+  expiresAt   DateTime
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 
   rental Rental @relation(fields: [rentalId], references: [id], onDelete: Cascade)
 
@@ -214,12 +212,6 @@ enum PaymentStatus {
   refunded
   cancelled
   failed
-}
-
-enum RentalChargeMethod {
-  pix
-  debit_card
-  credit_card
 }
 
 enum RentalChargeStatus {

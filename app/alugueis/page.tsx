@@ -1,5 +1,4 @@
 import {
-  RentalChargeMethod,
   RentalChargeStatus,
   RentalFinancialLineStatus,
   RentalFinancialLineType,
@@ -22,12 +21,6 @@ const statusLabels: Record<RentalStatus, string> = {
   in_completion: "Em finalizacao",
   closed: "Encerrado",
   cancelled: "Cancelado"
-};
-
-const chargeMethodLabels: Record<RentalChargeMethod, string> = {
-  pix: "Pix",
-  debit_card: "Cartao de debito",
-  credit_card: "Cartao de credito"
 };
 
 const chargeStatusLabels: Record<RentalChargeStatus, string> = {
@@ -244,30 +237,6 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
             <input name="generalDiscount" placeholder="Ex: 50,00" />
           </label>
 
-          <label>
-            Metodo de pagamento
-            <select name="chargeMethod" required defaultValue={RentalChargeMethod.pix}>
-              {Object.values(RentalChargeMethod).map((method) => (
-                <option key={method} value={method}>
-                  {chargeMethodLabels[method]}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Parcelas
-            <select name="installments" defaultValue="1">
-              {Array.from({ length: 12 }, (_, index) => index + 1).map(
-                (installment) => (
-                  <option key={installment} value={installment}>
-                    {installment}x
-                  </option>
-                )
-              )}
-            </select>
-          </label>
-
           <fieldset>
             <legend>Joias</legend>
             {rentableItems.length === 0 ? (
@@ -450,10 +419,7 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
                             {rental.charges.map((charge) => (
                               <article className="receivableCard" key={charge.id}>
                                 <div>
-                                  <strong>
-                                    {chargeMethodLabels[charge.method]} -{" "}
-                                    {charge.installments}x
-                                  </strong>
+                                  <strong>Cobranca inicial</strong>
                                   <small>
                                     Expira em {formatDateTime(charge.expiresAt)}
                                   </small>

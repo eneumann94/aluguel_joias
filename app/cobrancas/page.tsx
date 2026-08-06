@@ -1,5 +1,4 @@
 import {
-  RentalChargeMethod,
   RentalChargeStatus,
   RentalFinancialLineStatus,
   RentalFinancialLineType,
@@ -12,12 +11,6 @@ type ChargesPageProps = {
   searchParams: Promise<{
     status?: string;
   }>;
-};
-
-const chargeMethodLabels: Record<RentalChargeMethod, string> = {
-  pix: "Pix",
-  debit_card: "Cartao de debito",
-  credit_card: "Cartao de credito"
 };
 
 const chargeStatusLabels: Record<RentalChargeStatus, string> = {
@@ -186,14 +179,6 @@ export default async function ChargesPage({ searchParams }: ChargesPageProps) {
 
                   <div className="rentalDetails">
                     <dl>
-                      <div>
-                        <dt>Metodo</dt>
-                        <dd>{chargeMethodLabels[charge.method]}</dd>
-                      </div>
-                      <div>
-                        <dt>Parcelas</dt>
-                        <dd>{charge.installments}x</dd>
-                      </div>
                       <div>
                         <dt>Expira em</dt>
                         <dd>{formatDateTime(charge.expiresAt)}</dd>
