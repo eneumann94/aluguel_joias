@@ -73,15 +73,14 @@ model Rental {
   customerId      String
   startDate       DateTime
   expectedEndDate DateTime
-  discountCents   Int          @default(0)
   status          RentalStatus @default(open)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  customer    Customer     @relation(fields: [customerId], references: [id])
-  rentalItems RentalItem[]
-  payments    Payment[]
-  receivables Receivable[]
+  customer       Customer              @relation(fields: [customerId], references: [id])
+  rentalItems    RentalItem[]
+  payments       Payment[]
+  financialLines RentalFinancialLine[]
 
   @@index([customerId])
   @@index([startDate, expectedEndDate])
@@ -124,13 +123,13 @@ model Payment {
   @@map("payments")
 }
 
-model Receivable {
+model RentalFinancialLine {
   id              String                    @id @default(cuid())
   rentalId        String
-  type            ReceivableType
+  type            RentalFinancialLineType
   amountCents     Int
   dueAt           DateTime
-  lifecycleStatus ReceivableLifecycleStatus @default(active)
+  lifecycleStatus RentalFinancialLineStatus @default(active)
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt
 
@@ -138,7 +137,7 @@ model Receivable {
 
   @@index([rentalId])
   @@index([dueAt])
-  @@map("receivables")
+  @@map("rental_financial_lines")
 }
 
 model Inspection {
@@ -195,14 +194,18 @@ enum PaymentStatus {
   failed
 }
 
-enum ReceivableType {
+enum RentalFinancialLineType {
   rental_fee
+  item_discount
   deposit
+  general_discount
   late_fee
   damage_fee
+  cleaning_fee
+  maintenance_fee
 }
 
-enum ReceivableLifecycleStatus {
+enum RentalFinancialLineStatus {
   active
   cancelled
 }

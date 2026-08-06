@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   Prisma,
-  ReceivableLifecycleStatus,
-  ReceivableType,
+  RentalFinancialLineStatus,
+  RentalFinancialLineType,
   RentalStatus
 } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
@@ -87,7 +87,7 @@ export async function createRental(formData: FormData) {
   const customerId = requiredText(formData.get("customerId"));
   const startDate = parseDate(formData.get("startDate"));
   const expectedEndDate = parseDate(formData.get("expectedEndDate"));
-  const discountCents = parseMoneyToCents(formData.get("discount"));
+  const generalDiscountCents = parseMoneyToCents(formData.get("generalDiscount"));
   const itemIds = formData
     .getAll("itemIds")
     .map((value) => requiredText(value))
@@ -119,18 +119,47 @@ export async function createRental(formData: FormData) {
     (total, price) => total + price.discountCents,
     0
   );
-  const rentalFeeCents = Math.max(
-    subtotalCents - itemDiscountCents - discountCents,
-    0
-  );
   const dueAt = new Date(Date.now() + 12 * 60 * 60 * 1000);
+  const financialLines = [
+    {
+      type: RentalFinancialLineType.rental_fee,
+      amountCents: subtotalCents,
+      dueAt,
+      lifecycleStatus: RentalFinancialLineStatus.active
+    },
+    ...(itemDiscountCents > 0
+      ? [
+          {
+            type: RentalFinancialLineType.item_discount,
+            amountCents: -itemDiscountCents,
+            dueAt,
+            lifecycleStatus: RentalFinancialLineStatus.active
+          }
+        ]
+      : []),
+    {
+      type: RentalFinancialLineType.deposit,
+      amountCents: depositAmountCents,
+      dueAt,
+      lifecycleStatus: RentalFinancialLineStatus.active
+    },
+    ...(generalDiscountCents > 0
+      ? [
+          {
+            type: RentalFinancialLineType.general_discount,
+            amountCents: -generalDiscountCents,
+            dueAt,
+            lifecycleStatus: RentalFinancialLineStatus.active
+          }
+        ]
+      : [])
+  ];
 
   await prisma.rental.create({
     data: {
       customerId,
       startDate,
       expectedEndDate,
-      discountCents,
       status: RentalStatus.open,
       rentalItems: {
         create: prices.map((price) => ({
@@ -140,21 +169,8 @@ export async function createRental(formData: FormData) {
           discountCents: price.discountCents
         }))
       },
-      receivables: {
-        create: [
-          {
-            type: ReceivableType.rental_fee,
-            amountCents: rentalFeeCents,
-            dueAt,
-            lifecycleStatus: ReceivableLifecycleStatus.active
-          },
-          {
-            type: ReceivableType.deposit,
-            amountCents: depositAmountCents,
-            dueAt,
-            lifecycleStatus: ReceivableLifecycleStatus.active
-          }
-        ]
+      financialLines: {
+        create: financialLines
       }
     }
   });

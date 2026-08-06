@@ -1,6 +1,6 @@
 import {
-  ReceivableLifecycleStatus,
-  ReceivableType,
+  RentalFinancialLineStatus,
+  RentalFinancialLineType,
   RentalStatus
 } from "@prisma/client";
 import { PanelShell } from "../../components/panel-shell";
@@ -19,14 +19,18 @@ const statusLabels: Record<RentalStatus, string> = {
   cancelled: "Cancelado"
 };
 
-const receivableTypeLabels: Record<ReceivableType, string> = {
+const financialLineTypeLabels: Record<RentalFinancialLineType, string> = {
   rental_fee: "Aluguel",
+  item_discount: "Desconto das pecas",
   deposit: "Caucao",
+  general_discount: "Desconto geral",
   late_fee: "Atraso",
-  damage_fee: "Dano"
+  damage_fee: "Dano",
+  cleaning_fee: "Limpeza",
+  maintenance_fee: "Manutencao"
 };
 
-const receivableLifecycleLabels: Record<ReceivableLifecycleStatus, string> = {
+const financialLineLifecycleLabels: Record<RentalFinancialLineStatus, string> = {
   active: "Ativo",
   cancelled: "Cancelado"
 };
@@ -72,6 +76,18 @@ function sumRentalItems(
   return { subtotalCents, depositAmountCents, itemDiscountCents };
 }
 
+function sumActiveFinancialLines(
+  lines: { amountCents: number; lifecycleStatus: RentalFinancialLineStatus }[]
+) {
+  return lines.reduce(
+    (total, line) =>
+      line.lifecycleStatus === RentalFinancialLineStatus.active
+        ? total + line.amountCents
+        : total,
+    0
+  );
+}
+
 export default async function RentalsPage({ searchParams }: RentalsPageProps) {
   const params = await searchParams;
 
@@ -112,7 +128,7 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
             }
           }
         },
-        receivables: {
+        financialLines: {
           orderBy: { createdAt: "asc" }
         }
       }
@@ -183,7 +199,7 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
 
           <label>
             Desconto geral
-            <input name="discount" placeholder="Ex: 50,00" />
+            <input name="generalDiscount" placeholder="Ex: 50,00" />
           </label>
 
           <fieldset>
@@ -246,9 +262,8 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
                   depositAmountCents,
                   itemDiscountCents
                 } = sumRentalItems(rental.rentalItems);
-                const totalCents = Math.max(
-                  subtotalCents - itemDiscountCents - rental.discountCents,
-                  0
+                const totalCents = sumActiveFinancialLines(
+                  rental.financialLines
                 );
 
                 return (
@@ -273,7 +288,7 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
                         </div>
                         <div>
                           <dt>Desconto</dt>
-                          <dd>{formatMoney(itemDiscountCents + rental.discountCents)}</dd>
+                          <dd>{formatMoney(itemDiscountCents)}</dd>
                         </div>
                         <div>
                           <dt>Total</dt>
@@ -317,26 +332,26 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
                       <section className="receivablePanel">
                         <div className="sectionTitle compactTitle">
                           <div>
-                            <h2>Contas a receber</h2>
-                            <span>{rental.receivables.length} geradas</span>
+                            <h2>Financeiro do aluguel</h2>
+                            <span>{rental.financialLines.length} linhas</span>
                           </div>
                         </div>
 
                         <div className="receivableList">
-                          {rental.receivables.map((receivable) => (
-                            <article className="receivableCard" key={receivable.id}>
+                          {rental.financialLines.map((line) => (
+                            <article className="receivableCard" key={line.id}>
                               <div>
-                                <strong>{receivableTypeLabels[receivable.type]}</strong>
+                                <strong>{financialLineTypeLabels[line.type]}</strong>
                                 <small>
-                                  Vence em {formatDateTime(receivable.dueAt)}
+                                  Vence em {formatDateTime(line.dueAt)}
                                 </small>
                               </div>
                               <div>
-                                <strong>{formatMoney(receivable.amountCents)}</strong>
+                                <strong>{formatMoney(line.amountCents)}</strong>
                                 <small>
                                   {
-                                    receivableLifecycleLabels[
-                                      receivable.lifecycleStatus
+                                    financialLineLifecycleLabels[
+                                      line.lifecycleStatus
                                     ]
                                   }
                                 </small>
