@@ -4,6 +4,7 @@ import {
   RentalFinancialLineType,
   RentalStatus
 } from "@prisma/client";
+import Link from "next/link";
 import { PanelShell } from "../../components/panel-shell";
 import { prisma } from "../../lib/prisma";
 
@@ -225,6 +226,14 @@ export default async function ChargesPage({ searchParams }: ChargesPageProps) {
                         ))}
                       </div>
                     </section>
+
+                    {charge.status === RentalChargeStatus.pending ? (
+                      <div className="rowActions">
+                        <Link className="primaryLinkButton" href={`/checkout/${charge.id}`}>
+                          Pagar
+                        </Link>
+                      </div>
+                    ) : null}
                   </div>
                 </details>
               );
