@@ -75,12 +75,12 @@ export default async function ItemsPage({ searchParams }: ItemsPageProps) {
       prisma.customer.count(),
       prisma.item.count(),
       prisma.rental.count(),
-      prisma.payment.count(),
+      prisma.rentalCharge.count(),
       prisma.inspection.count()
     ])
   ]);
 
-  const [customerCount, itemCount, rentalCount, paymentCount, inspectionCount] =
+  const [customerCount, itemCount, rentalCount, chargeCount, inspectionCount] =
     counts;
 
   return (
@@ -90,7 +90,7 @@ export default async function ItemsPage({ searchParams }: ItemsPageProps) {
         customers: customerCount,
         items: itemCount,
         rentals: rentalCount,
-        payments: paymentCount,
+        charges: chargeCount,
         inspections: inspectionCount
       }}
     >

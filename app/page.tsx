@@ -18,9 +18,9 @@ const modules = [
     count: "0 reservas"
   },
   {
-    title: "Pagamentos",
-    description: "Aluguel, caucao, reembolso, multas e taxas.",
-    count: "0 lancamentos"
+    title: "Cobrancas",
+    description: "Valor final, metodo, parcelas, vencimento e status.",
+    count: "0 cobrancas"
   },
   {
     title: "Vistorias",
@@ -36,23 +36,25 @@ const tables = [
   "item_prices",
   "rentals",
   "rental_items",
+  "rental_financial_lines",
+  "rental_charges",
   "payments",
   "inspections"
 ];
 
 export default async function Home() {
-  const [customers, items, rentals, payments, inspections] = await Promise.all([
+  const [customers, items, rentals, charges, inspections] = await Promise.all([
     prisma.customer.count(),
     prisma.item.count(),
     prisma.rental.count(),
-    prisma.payment.count(),
+    prisma.rentalCharge.count(),
     prisma.inspection.count()
   ]);
 
   return (
     <PanelShell
       active="overview"
-      counts={{ customers, items, rentals, payments, inspections }}
+      counts={{ customers, items, rentals, charges, inspections }}
     >
         <header className="topHeader">
           <div>

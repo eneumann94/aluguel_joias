@@ -4,12 +4,12 @@ type MenuCount = {
   customers?: number;
   items?: number;
   rentals?: number;
-  payments?: number;
+  charges?: number;
   inspections?: number;
 };
 
 type PanelShellProps = {
-  active: "overview" | "customers" | "items" | "rentals";
+  active: "overview" | "customers" | "items" | "rentals" | "charges";
   counts?: MenuCount;
   children: React.ReactNode;
 };
@@ -34,10 +34,10 @@ const menuItems = [
     fallback: "0 reservas"
   },
   {
-    key: "payments",
-    title: "Pagamentos",
-    href: "#",
-    fallback: "0 lancamentos"
+    key: "charges",
+    title: "Cobrancas",
+    href: "/cobrancas",
+    fallback: "0 cobrancas"
   },
   {
     key: "inspections",
@@ -56,7 +56,7 @@ function formatCount(key: keyof MenuCount, value: number | undefined) {
     customers: ["registro", "registros"],
     items: ["peca", "pecas"],
     rentals: ["reserva", "reservas"],
-    payments: ["lancamento", "lancamentos"],
+    charges: ["cobranca", "cobrancas"],
     inspections: ["vistoria", "vistorias"]
   };
   const [singular, plural] = labels[key];
@@ -78,10 +78,7 @@ export function PanelShell({ active, counts, children }: PanelShellProps) {
 
         <nav className="sideNav">
           {menuItems.map((item) => {
-            const isActive =
-              (active === "customers" && item.key === "customers") ||
-              (active === "items" && item.key === "items") ||
-              (active === "rentals" && item.key === "rentals");
+            const isActive = active === item.key;
 
             return (
               <Link
