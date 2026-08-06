@@ -73,7 +73,7 @@ model Rental {
   customerId      String
   startDate       DateTime
   expectedEndDate DateTime
-  status          RentalStatus @default(open)
+  status          RentalStatus @default(pending_payment)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
@@ -81,6 +81,7 @@ model Rental {
   rentalItems    RentalItem[]
   payments       Payment[]
   financialLines RentalFinancialLine[]
+  charges        RentalCharge[]
 
   @@index([customerId])
   @@index([startDate, expectedEndDate])
@@ -140,6 +141,24 @@ model RentalFinancialLine {
   @@map("rental_financial_lines")
 }
 
+model RentalCharge {
+  id           String             @id @default(cuid())
+  rentalId     String
+  amountCents  Int
+  method       RentalChargeMethod
+  installments Int                @default(1)
+  status       RentalChargeStatus @default(pending)
+  expiresAt    DateTime
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  rental Rental @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+
+  @@index([rentalId])
+  @@index([expiresAt])
+  @@map("rental_charges")
+}
+
 model Inspection {
   id           String         @id @default(cuid())
   rentalItemId String
@@ -165,7 +184,10 @@ enum ItemStatus {
 }
 
 enum RentalStatus {
-  open
+  pending_payment
+  expired
+  confirmed
+  in_completion
   closed
   cancelled
 }
@@ -190,6 +212,20 @@ enum PaymentStatus {
   pending
   paid
   refunded
+  cancelled
+  failed
+}
+
+enum RentalChargeMethod {
+  pix
+  debit_card
+  credit_card
+}
+
+enum RentalChargeStatus {
+  pending
+  paid
+  expired
   cancelled
   failed
 }

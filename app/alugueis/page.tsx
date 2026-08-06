@@ -1,4 +1,6 @@
 import {
+  RentalChargeMethod,
+  RentalChargeStatus,
   RentalFinancialLineStatus,
   RentalFinancialLineType,
   RentalStatus
@@ -14,9 +16,26 @@ type RentalsPageProps = {
 };
 
 const statusLabels: Record<RentalStatus, string> = {
-  open: "Aberto",
+  pending_payment: "Aguardando pagamento",
+  expired: "Expirado",
+  confirmed: "Confirmado",
+  in_completion: "Em finalizacao",
   closed: "Encerrado",
   cancelled: "Cancelado"
+};
+
+const chargeMethodLabels: Record<RentalChargeMethod, string> = {
+  pix: "Pix",
+  debit_card: "Cartao de debito",
+  credit_card: "Cartao de credito"
+};
+
+const chargeStatusLabels: Record<RentalChargeStatus, string> = {
+  pending: "Pendente",
+  paid: "Pago",
+  expired: "Expirado",
+  cancelled: "Cancelado",
+  failed: "Falhou"
 };
 
 const financialLineTypeLabels: Record<RentalFinancialLineType, string> = {
@@ -88,6 +107,26 @@ function sumActiveFinancialLines(
   );
 }
 
+function sumActiveFinancialLinesByType(
+  lines: {
+    type: RentalFinancialLineType;
+    amountCents: number;
+    lifecycleStatus: RentalFinancialLineStatus;
+  }[],
+  types: RentalFinancialLineType[]
+) {
+  const selectedTypes = new Set(types);
+
+  return lines.reduce(
+    (total, line) =>
+      line.lifecycleStatus === RentalFinancialLineStatus.active &&
+      selectedTypes.has(line.type)
+        ? total + line.amountCents
+        : total,
+    0
+  );
+}
+
 export default async function RentalsPage({ searchParams }: RentalsPageProps) {
   const params = await searchParams;
 
@@ -129,6 +168,9 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
           }
         },
         financialLines: {
+          orderBy: { createdAt: "asc" }
+        },
+        charges: {
           orderBy: { createdAt: "asc" }
         }
       }
@@ -202,6 +244,30 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
             <input name="generalDiscount" placeholder="Ex: 50,00" />
           </label>
 
+          <label>
+            Metodo de pagamento
+            <select name="chargeMethod" required defaultValue={RentalChargeMethod.pix}>
+              {Object.values(RentalChargeMethod).map((method) => (
+                <option key={method} value={method}>
+                  {chargeMethodLabels[method]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Parcelas
+            <select name="installments" defaultValue="1">
+              {Array.from({ length: 12 }, (_, index) => index + 1).map(
+                (installment) => (
+                  <option key={installment} value={installment}>
+                    {installment}x
+                  </option>
+                )
+              )}
+            </select>
+          </label>
+
           <fieldset>
             <legend>Joias</legend>
             {rentableItems.length === 0 ? (
@@ -257,13 +323,19 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
           ) : (
             <div className="rentalRows">
               {rentals.map((rental) => {
-                const {
-                  subtotalCents,
-                  depositAmountCents,
-                  itemDiscountCents
-                } = sumRentalItems(rental.rentalItems);
+                const { subtotalCents } = sumRentalItems(rental.rentalItems);
                 const totalCents = sumActiveFinancialLines(
                   rental.financialLines
+                );
+                const financialDiscountCents = Math.abs(
+                  sumActiveFinancialLinesByType(rental.financialLines, [
+                    RentalFinancialLineType.item_discount,
+                    RentalFinancialLineType.general_discount
+                  ])
+                );
+                const financialDepositCents = sumActiveFinancialLinesByType(
+                  rental.financialLines,
+                  [RentalFinancialLineType.deposit]
                 );
 
                 return (
@@ -288,7 +360,7 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
                         </div>
                         <div>
                           <dt>Desconto</dt>
-                          <dd>{formatMoney(itemDiscountCents)}</dd>
+                          <dd>{formatMoney(financialDiscountCents)}</dd>
                         </div>
                         <div>
                           <dt>Total</dt>
@@ -296,7 +368,7 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
                         </div>
                         <div>
                           <dt>Caucao</dt>
-                          <dd>{formatMoney(depositAmountCents)}</dd>
+                          <dd>{formatMoney(financialDepositCents)}</dd>
                         </div>
                       </dl>
 
@@ -359,6 +431,41 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
                             </article>
                           ))}
                         </div>
+                      </section>
+
+                      <section className="receivablePanel">
+                        <div className="sectionTitle compactTitle">
+                          <div>
+                            <h2>Cobrancas</h2>
+                            <span>{rental.charges.length} geradas</span>
+                          </div>
+                        </div>
+
+                        {rental.charges.length === 0 ? (
+                          <div className="emptyState compactEmpty">
+                            Nenhuma cobranca registrada para este aluguel.
+                          </div>
+                        ) : (
+                          <div className="receivableList">
+                            {rental.charges.map((charge) => (
+                              <article className="receivableCard" key={charge.id}>
+                                <div>
+                                  <strong>
+                                    {chargeMethodLabels[charge.method]} -{" "}
+                                    {charge.installments}x
+                                  </strong>
+                                  <small>
+                                    Expira em {formatDateTime(charge.expiresAt)}
+                                  </small>
+                                </div>
+                                <div>
+                                  <strong>{formatMoney(charge.amountCents)}</strong>
+                                  <small>{chargeStatusLabels[charge.status]}</small>
+                                </div>
+                              </article>
+                            ))}
+                          </div>
+                        )}
                       </section>
 
                       <form action={updateRentalStatus} className="statusForm">

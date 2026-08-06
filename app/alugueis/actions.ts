@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   Prisma,
+  RentalChargeMethod,
+  RentalChargeStatus,
   RentalFinancialLineStatus,
   RentalFinancialLineType,
   RentalStatus
@@ -11,6 +13,7 @@ import {
 import { prisma } from "../../lib/prisma";
 
 const rentalStatuses = new Set(Object.values(RentalStatus));
+const chargeMethods = new Set(Object.values(RentalChargeMethod));
 
 function requiredText(value: FormDataEntryValue | null) {
   return String(value ?? "").trim();
@@ -46,7 +49,31 @@ function parseStatus(value: FormDataEntryValue | null) {
   const status = requiredText(value);
   return rentalStatuses.has(status as RentalStatus)
     ? (status as RentalStatus)
-    : RentalStatus.open;
+    : RentalStatus.pending_payment;
+}
+
+function parseChargeMethod(value: FormDataEntryValue | null) {
+  const method = requiredText(value);
+  return chargeMethods.has(method as RentalChargeMethod)
+    ? (method as RentalChargeMethod)
+    : null;
+}
+
+function parseInstallments(
+  value: FormDataEntryValue | null,
+  method: RentalChargeMethod
+) {
+  if (method !== RentalChargeMethod.credit_card) {
+    return 1;
+  }
+
+  const installments = Number.parseInt(requiredText(value), 10);
+
+  if (!Number.isInteger(installments) || installments < 1) {
+    return 1;
+  }
+
+  return Math.min(installments, 12);
 }
 
 function redirectWithMessage(message: string): never {
@@ -88,6 +115,7 @@ export async function createRental(formData: FormData) {
   const startDate = parseDate(formData.get("startDate"));
   const expectedEndDate = parseDate(formData.get("expectedEndDate"));
   const generalDiscountCents = parseMoneyToCents(formData.get("generalDiscount"));
+  const chargeMethod = parseChargeMethod(formData.get("chargeMethod"));
   const itemIds = formData
     .getAll("itemIds")
     .map((value) => requiredText(value))
@@ -105,6 +133,14 @@ export async function createRental(formData: FormData) {
     redirectWithMessage("Selecione pelo menos uma joia.");
   }
 
+  if (!chargeMethod) {
+    redirectWithMessage("Selecione o metodo de pagamento.");
+  }
+
+  const installments = parseInstallments(
+    formData.get("installments"),
+    chargeMethod
+  );
   const uniqueItemIds = Array.from(new Set(itemIds));
   const prices = await getCurrentPrices(uniqueItemIds);
   const subtotalCents = prices.reduce(
@@ -154,13 +190,21 @@ export async function createRental(formData: FormData) {
         ]
       : [])
   ];
+  const chargeAmountCents = financialLines.reduce(
+    (total, line) => total + line.amountCents,
+    0
+  );
+
+  if (chargeAmountCents <= 0) {
+    redirectWithMessage("O valor total da cobranca precisa ser maior que zero.");
+  }
 
   await prisma.rental.create({
     data: {
       customerId,
       startDate,
       expectedEndDate,
-      status: RentalStatus.open,
+      status: RentalStatus.pending_payment,
       rentalItems: {
         create: prices.map((price) => ({
           itemId: price.itemId,
@@ -171,6 +215,15 @@ export async function createRental(formData: FormData) {
       },
       financialLines: {
         create: financialLines
+      },
+      charges: {
+        create: {
+          amountCents: chargeAmountCents,
+          method: chargeMethod,
+          installments,
+          status: RentalChargeStatus.pending,
+          expiresAt: dueAt
+        }
       }
     }
   });
