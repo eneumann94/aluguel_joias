@@ -68,22 +68,19 @@ model ItemPrice {
 }
 
 model Rental {
-  id                 String       @id @default(cuid())
-  customerId         String
-  startDate          DateTime
-  expectedEndDate    DateTime
-  returnedAt         DateTime?
-  subtotalCents      Int          @default(0)
-  discountCents      Int          @default(0)
-  depositAmountCents Int          @default(0)
-  totalAmountCents   Int          @default(0)
-  status             RentalStatus @default(draft)
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  id              String       @id @default(cuid())
+  customerId      String
+  startDate       DateTime
+  expectedEndDate DateTime
+  discountCents   Int          @default(0)
+  status          RentalStatus @default(open)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   customer    Customer     @relation(fields: [customerId], references: [id])
   rentalItems RentalItem[]
   payments    Payment[]
+  receivables Receivable[]
 
   @@index([customerId])
   @@index([startDate, expectedEndDate])
@@ -125,6 +122,23 @@ model Payment {
   @@map("payments")
 }
 
+model Receivable {
+  id              String                    @id @default(cuid())
+  rentalId        String
+  type            ReceivableType
+  amountCents     Int
+  dueAt           DateTime
+  lifecycleStatus ReceivableLifecycleStatus @default(active)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  rental Rental @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+
+  @@index([rentalId])
+  @@index([dueAt])
+  @@map("receivables")
+}
+
 model Inspection {
   id           String         @id @default(cuid())
   rentalItemId String
@@ -150,14 +164,9 @@ enum ItemStatus {
 }
 
 enum RentalStatus {
-  draft
-  requested
-  confirmed
-  paid
-  picked_up
-  returned
+  open
+  closed
   cancelled
-  late
 }
 
 enum PaymentType {
@@ -182,6 +191,18 @@ enum PaymentStatus {
   refunded
   cancelled
   failed
+}
+
+enum ReceivableType {
+  rental_fee
+  deposit
+  late_fee
+  damage_fee
+}
+
+enum ReceivableLifecycleStatus {
+  active
+  cancelled
 }
 
 enum InspectionType {

@@ -299,7 +299,8 @@ h2 {
 }
 
 .customerLayout,
-.itemLayout {
+.itemLayout,
+.rentalLayout {
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);
   gap: 24px;
@@ -407,22 +408,26 @@ textarea:focus {
 }
 
 .customerRows,
-.itemRows {
+.itemRows,
+.rentalRows {
   display: grid;
 }
 
 .customerRow,
-.itemRow {
+.itemRow,
+.rentalRow {
   border-bottom: 1px solid var(--line);
 }
 
 .customerRow:last-child,
-.itemRow:last-child {
+.itemRow:last-child,
+.rentalRow:last-child {
   border-bottom: 0;
 }
 
 .customerRow summary,
-.itemRow summary {
+.itemRow summary,
+.rentalRow summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 96px;
   gap: 14px;
@@ -437,33 +442,47 @@ textarea:focus {
   grid-template-columns: 72px minmax(0, 1fr) 120px;
 }
 
+.rentalRow summary {
+  grid-template-columns: minmax(0, 1fr) 110px 110px;
+}
+
 .customerRow summary::-webkit-details-marker,
-.itemRow summary::-webkit-details-marker {
+.itemRow summary::-webkit-details-marker,
+.rentalRow summary::-webkit-details-marker {
   display: none;
 }
 
 .customerRow summary strong,
 .customerRow summary small,
 .itemRow summary strong,
-.itemRow summary small {
+.itemRow summary small,
+.rentalRow summary strong,
+.rentalRow summary small {
   display: block;
 }
 
 .customerRow summary small,
-.itemRow summary small {
+.itemRow summary small,
+.rentalRow summary small {
   margin-top: 5px;
   color: var(--muted);
 }
 
 .customerRow summary > span:last-child,
-.priceSummary {
+.priceSummary,
+.rentalRow summary > span {
   color: var(--muted);
   font-size: 14px;
   text-align: right;
 }
 
+.rentalRow summary > span:first-child {
+  text-align: left;
+}
+
 .customerDetails,
-.itemDetails {
+.itemDetails,
+.rentalDetails {
   display: grid;
   gap: 18px;
   padding: 0 20px 20px;
@@ -617,6 +636,151 @@ dd {
   border-color: #efc9cf;
 }
 
+fieldset {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  padding: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 760;
+}
+
+fieldset p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.checkboxList {
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.checkboxCard {
+  grid-template-columns: 18px 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 9px;
+  color: var(--ink);
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.checkboxCard input {
+  width: 18px;
+  min-height: 18px;
+}
+
+.checkboxCard strong,
+.checkboxCard small {
+  display: block;
+}
+
+.checkboxCard small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.miniThumb {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  color: var(--muted);
+  background: #f4ead9;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.miniThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rentalItemList {
+  display: grid;
+  gap: 10px;
+}
+
+.receivablePanel {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.receivableList {
+  display: grid;
+  gap: 10px;
+}
+
+.receivableCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.receivableCard strong,
+.receivableCard small {
+  display: block;
+}
+
+.receivableCard small {
+  margin-top: 5px;
+  color: var(--muted);
+}
+
+.receivableCard > div:last-child {
+  text-align: right;
+}
+
+.rentalItemCard {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.rentalItemCard strong,
+.rentalItemCard small {
+  display: block;
+}
+
+.rentalItemCard small {
+  margin-top: 5px;
+  color: var(--muted);
+}
+
+.statusForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 170px;
+  gap: 12px;
+  align-items: end;
+}
+
 .rowActions {
   display: flex;
   align-items: end;
@@ -683,6 +847,7 @@ dd {
 
   .customerLayout,
   .itemLayout,
+  .rentalLayout,
   .listHeader {
     grid-template-columns: 1fr;
   }
@@ -720,15 +885,19 @@ dd {
   .searchForm,
   .customerRow summary,
   .itemRow summary,
+  .rentalRow summary,
+  .receivableCard,
   .editForm,
   .priceForm,
   .photoUploadForm,
+  .statusForm,
   dl {
     grid-template-columns: 1fr;
   }
 
   .customerRow summary > span:last-child,
-  .priceSummary {
+  .priceSummary,
+  .rentalRow summary > span {
     text-align: left;
   }
 

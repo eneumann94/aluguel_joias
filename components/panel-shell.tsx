@@ -9,7 +9,7 @@ type MenuCount = {
 };
 
 type PanelShellProps = {
-  active: "overview" | "customers" | "items";
+  active: "overview" | "customers" | "items" | "rentals";
   counts?: MenuCount;
   children: React.ReactNode;
 };
@@ -30,7 +30,7 @@ const menuItems = [
   {
     key: "rentals",
     title: "Alugueis",
-    href: "#",
+    href: "/alugueis",
     fallback: "0 reservas"
   },
   {
@@ -80,7 +80,8 @@ export function PanelShell({ active, counts, children }: PanelShellProps) {
           {menuItems.map((item) => {
             const isActive =
               (active === "customers" && item.key === "customers") ||
-              (active === "items" && item.key === "items");
+              (active === "items" && item.key === "items") ||
+              (active === "rentals" && item.key === "rentals");
 
             return (
               <Link
