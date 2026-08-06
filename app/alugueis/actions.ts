@@ -62,7 +62,8 @@ async function getCurrentPrices(itemIds: string[]) {
         select: {
           itemId: true,
           rentalPriceCents: true,
-          depositAmountCents: true
+          depositAmountCents: true,
+          discountCents: true
         }
       });
 
@@ -78,6 +79,7 @@ async function getCurrentPrices(itemIds: string[]) {
     itemId: string;
     rentalPriceCents: number;
     depositAmountCents: number;
+    discountCents: number;
   }[];
 }
 
@@ -113,7 +115,14 @@ export async function createRental(formData: FormData) {
     (total, price) => total + price.depositAmountCents,
     0
   );
-  const rentalFeeCents = Math.max(subtotalCents - discountCents, 0);
+  const itemDiscountCents = prices.reduce(
+    (total, price) => total + price.discountCents,
+    0
+  );
+  const rentalFeeCents = Math.max(
+    subtotalCents - itemDiscountCents - discountCents,
+    0
+  );
   const dueAt = new Date(Date.now() + 12 * 60 * 60 * 1000);
 
   await prisma.rental.create({
@@ -127,7 +136,8 @@ export async function createRental(formData: FormData) {
         create: prices.map((price) => ({
           itemId: price.itemId,
           rentalPriceCents: price.rentalPriceCents,
-          depositAmountCents: price.depositAmountCents
+          depositAmountCents: price.depositAmountCents,
+          discountCents: price.discountCents
         }))
       },
       receivables: {

@@ -1,0 +1,3 @@
+ALTER TABLE "item_prices" ADD COLUMN "discountCents" INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE "rental_items" ADD COLUMN "discountCents" INTEGER NOT NULL DEFAULT 0;

@@ -90,6 +90,7 @@ export async function createItem(formData: FormData) {
   const type = requiredText(formData.get("type"));
   const rentalPriceCents = parseMoneyToCents(formData.get("rentalPrice"));
   const depositAmountCents = parseMoneyToCents(formData.get("depositAmount"));
+  const discountCents = parseMoneyToCents(formData.get("discount"));
 
   if (!name || !type || rentalPriceCents === null) {
     redirectWithMessage("Informe nome, tipo e preco de aluguel.");
@@ -104,7 +105,8 @@ export async function createItem(formData: FormData) {
       prices: {
         create: {
           rentalPriceCents,
-          depositAmountCents: depositAmountCents ?? 0
+          depositAmountCents: depositAmountCents ?? 0,
+          discountCents: discountCents ?? 0
         }
       }
     }
@@ -143,6 +145,7 @@ export async function createItemPrice(formData: FormData) {
   const itemId = requiredText(formData.get("itemId"));
   const rentalPriceCents = parseMoneyToCents(formData.get("rentalPrice"));
   const depositAmountCents = parseMoneyToCents(formData.get("depositAmount"));
+  const discountCents = parseMoneyToCents(formData.get("discount"));
 
   if (!itemId || rentalPriceCents === null) {
     redirectWithMessage("Informe o novo preco de aluguel.");
@@ -156,7 +159,8 @@ export async function createItemPrice(formData: FormData) {
   if (
     latestPrice &&
     latestPrice.rentalPriceCents === rentalPriceCents &&
-    latestPrice.depositAmountCents === (depositAmountCents ?? 0)
+    latestPrice.depositAmountCents === (depositAmountCents ?? 0) &&
+    latestPrice.discountCents === (discountCents ?? 0)
   ) {
     redirectWithMessage("O preco informado ja e o preco atual.");
   }
@@ -165,7 +169,8 @@ export async function createItemPrice(formData: FormData) {
     data: {
       itemId,
       rentalPriceCents,
-      depositAmountCents: depositAmountCents ?? 0
+      depositAmountCents: depositAmountCents ?? 0,
+      discountCents: discountCents ?? 0
     }
   });
 

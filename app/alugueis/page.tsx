@@ -50,7 +50,11 @@ function formatDateTime(date: Date) {
 }
 
 function sumRentalItems(
-  items: { rentalPriceCents: number; depositAmountCents: number }[]
+  items: {
+    rentalPriceCents: number;
+    depositAmountCents: number;
+    discountCents: number;
+  }[]
 ) {
   const subtotalCents = items.reduce(
     (total, item) => total + item.rentalPriceCents,
@@ -60,8 +64,12 @@ function sumRentalItems(
     (total, item) => total + item.depositAmountCents,
     0
   );
+  const itemDiscountCents = items.reduce(
+    (total, item) => total + item.discountCents,
+    0
+  );
 
-  return { subtotalCents, depositAmountCents };
+  return { subtotalCents, depositAmountCents, itemDiscountCents };
 }
 
 export default async function RentalsPage({ searchParams }: RentalsPageProps) {
@@ -174,7 +182,7 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
           </label>
 
           <label>
-            Desconto
+            Desconto geral
             <input name="discount" placeholder="Ex: 50,00" />
           </label>
 
@@ -202,6 +210,9 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
                         <strong>{item.name}</strong>
                         <small>
                           {item.type} - {formatMoney(price.rentalPriceCents)}
+                          {price.discountCents > 0
+                            ? ` com desconto de ${formatMoney(price.discountCents)}`
+                            : ""}
                         </small>
                       </span>
                     </label>
@@ -230,11 +241,13 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
           ) : (
             <div className="rentalRows">
               {rentals.map((rental) => {
-                const { subtotalCents, depositAmountCents } = sumRentalItems(
-                  rental.rentalItems
-                );
+                const {
+                  subtotalCents,
+                  depositAmountCents,
+                  itemDiscountCents
+                } = sumRentalItems(rental.rentalItems);
                 const totalCents = Math.max(
-                  subtotalCents - rental.discountCents,
+                  subtotalCents - itemDiscountCents - rental.discountCents,
                   0
                 );
 
@@ -260,7 +273,7 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
                         </div>
                         <div>
                           <dt>Desconto</dt>
-                          <dd>{formatMoney(rental.discountCents)}</dd>
+                          <dd>{formatMoney(itemDiscountCents + rental.discountCents)}</dd>
                         </div>
                         <div>
                           <dt>Total</dt>
@@ -290,6 +303,8 @@ export default async function RentalsPage({ searchParams }: RentalsPageProps) {
                                 <small>
                                   Aluguel:{" "}
                                   {formatMoney(rentalItem.rentalPriceCents)} -
+                                  Desconto:{" "}
+                                  {formatMoney(rentalItem.discountCents)} -
                                   Caucao:{" "}
                                   {formatMoney(rentalItem.depositAmountCents)}
                                 </small>

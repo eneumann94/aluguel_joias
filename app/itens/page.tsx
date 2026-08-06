@@ -140,6 +140,11 @@ export default async function ItemsPage({ searchParams }: ItemsPageProps) {
           </label>
 
           <label>
+            Desconto da peca
+            <input name="discount" placeholder="Ex: 30,00" />
+          </label>
+
+          <label>
             Status manual temporario
             <select name="status" defaultValue={ItemStatus.available}>
               {Object.values(ItemStatus).map((status) => (
@@ -213,6 +218,10 @@ export default async function ItemsPage({ searchParams }: ItemsPageProps) {
                         <div>
                           <dt>Caucao</dt>
                           <dd>{formatMoney(currentPrice?.depositAmountCents)}</dd>
+                        </div>
+                        <div>
+                          <dt>Desconto da peca</dt>
+                          <dd>{formatMoney(currentPrice?.discountCents)}</dd>
                         </div>
                         <div>
                           <dt>Historico de precos</dt>
@@ -336,6 +345,15 @@ export default async function ItemsPage({ searchParams }: ItemsPageProps) {
                               currentPrice?.depositAmountCents
                             )}
                             name="depositAmount"
+                          />
+                        </label>
+                        <label>
+                          Novo desconto da peca
+                          <input
+                            defaultValue={moneyInputValue(
+                              currentPrice?.discountCents
+                            )}
+                            name="discount"
                           />
                         </label>
                         <div className="rowActions">

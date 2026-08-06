@@ -54,12 +54,13 @@ model ItemPhoto {
 }
 
 model ItemPrice {
-  id                 String    @id @default(cuid())
+  id                 String   @id @default(cuid())
   itemId             String
   rentalPriceCents   Int
   depositAmountCents Int
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  discountCents      Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
@@ -93,6 +94,7 @@ model RentalItem {
   itemId             String
   rentalPriceCents   Int
   depositAmountCents Int
+  discountCents      Int      @default(0)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
