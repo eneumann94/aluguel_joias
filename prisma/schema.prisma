@@ -79,7 +79,6 @@ model Rental {
 
   customer       Customer              @relation(fields: [customerId], references: [id])
   rentalItems    RentalItem[]
-  payments       Payment[]
   financialLines RentalFinancialLine[]
   charges        RentalCharge[]
 
@@ -108,19 +107,19 @@ model RentalItem {
 }
 
 model Payment {
-  id          String        @id @default(cuid())
-  rentalId    String
-  type        PaymentType
-  method      PaymentMethod
-  amountCents Int
-  status      PaymentStatus @default(pending)
-  paidAt      DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             String        @id @default(cuid())
+  rentalChargeId String
+  method         PaymentMethod
+  installments   Int           @default(1)
+  amountCents    Int
+  status         PaymentStatus @default(pending)
+  paidAt         DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
-  rental Rental @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  rentalCharge RentalCharge @relation(fields: [rentalChargeId], references: [id], onDelete: Cascade)
 
-  @@index([rentalId])
+  @@index([rentalChargeId])
   @@map("payments")
 }
 
@@ -150,7 +149,8 @@ model RentalCharge {
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 
-  rental Rental @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  rental   Rental    @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  payments Payment[]
 
   @@index([rentalId])
   @@index([expiresAt])
@@ -188,14 +188,6 @@ enum RentalStatus {
   in_completion
   closed
   cancelled
-}
-
-enum PaymentType {
-  rental
-  deposit
-  refund
-  late_fee
-  damage_fee
 }
 
 enum PaymentMethod {

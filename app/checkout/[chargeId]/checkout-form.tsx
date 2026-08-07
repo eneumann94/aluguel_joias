@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { payCharge } from "./actions";
 
 type CheckoutFormProps = {
   amountCents: number;
@@ -33,8 +34,8 @@ export function CheckoutForm({
     : [1];
 
   return (
-    <form action={`/checkout/${chargeId}`} className="checkoutForm">
-      <input name="simulated" type="hidden" value="1" />
+    <form action={payCharge} className="checkoutForm">
+      <input name="chargeId" type="hidden" value={chargeId} />
 
       <label>
         Metodo

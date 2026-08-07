@@ -13,7 +13,7 @@ type CheckoutPageProps = {
     chargeId: string;
   }>;
   searchParams: Promise<{
-    simulated?: string;
+    message?: string;
   }>;
 };
 
@@ -64,7 +64,6 @@ export default async function CheckoutPage({
 }: CheckoutPageProps) {
   const { chargeId } = await params;
   const query = await searchParams;
-  const simulated = query.simulated === "1";
 
   const charge = await prisma.rentalCharge.findUnique({
     where: { id: chargeId },
@@ -102,17 +101,13 @@ export default async function CheckoutPage({
             <span className="brandMark">AJ</span>
             <div>
               <strong>Aurora Joias</strong>
-              <small>Checkout simulado</small>
+              <small>Checkout</small>
             </div>
           </Link>
           <span>{formatDateTime(charge.expiresAt)}</span>
         </header>
 
-        {simulated ? (
-          <div className="notice">
-            Pagamento simulado. Nenhum dado foi salvo no banco nesta etapa.
-          </div>
-        ) : null}
+        {query.message ? <div className="notice">{query.message}</div> : null}
 
         <section className="checkoutGrid">
           <div className="checkoutMain">
